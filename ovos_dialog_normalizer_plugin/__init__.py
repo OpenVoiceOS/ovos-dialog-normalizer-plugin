@@ -15,10 +15,22 @@ class DialogNormalizerTransformer(DialogTransformer):
     """
 
     def __init__(self, name="ovos-dialog-normalizer-plugin", priority=5, config=None):
+        """
+        Initialize the dialog normalizer transformer with a name, priority, and optional configuration.
+        """
         super().__init__(name=name, priority=priority, config=config)
 
     def transform(self, dialog: str, context: Optional[dict] = None) -> Tuple[str, dict]:
-        """Normalize dialog text."""
+        """
+        Normalizes the input dialog text according to the session's language settings.
+        
+        Parameters:
+        	dialog (str): The dialog text to be normalized.
+        	context (dict, optional): Optional context containing session information.
+        
+        Returns:
+        	tuple: A tuple containing the normalized dialog string and the (unchanged) context dictionary.
+        """
         context = context or {}
         sess = Session.deserialize(context["session"]) if "session" in context else SessionManager.get()
         original = dialog

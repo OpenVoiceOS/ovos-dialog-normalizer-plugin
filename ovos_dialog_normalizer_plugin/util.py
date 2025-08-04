@@ -361,10 +361,13 @@ UNITS = {
 
 def _get_number_separators(full_lang: str) -> tuple[str, str]:
     """
-    Determines decimal and thousands separators based on language.
-    Defaults to '.' decimal and ',' thousands for most languages.
-    Special cases:
-    - 'pt', 'es', 'fr', 'de': ',' decimal and '.' thousands.
+    Return the decimal and thousands separators appropriate for the specified language.
+    
+    Parameters:
+    	full_lang (str): The full language code (e.g., "en-US", "pt-BR").
+    
+    Returns:
+    	tuple[str, str]: A tuple containing the decimal separator and thousands separator for the language.
     """
     lang_code = full_lang.split("-")[0]
     decimal_separator = '.'
@@ -377,8 +380,9 @@ def _get_number_separators(full_lang: str) -> tuple[str, str]:
 
 def _normalize_number_word(word: str, full_lang: str, rbnf_engine) -> str:
     """
-    Helper function to normalize a single word that is a number, handling
-    decimal and thousands separators based on locale.
+    Normalizes a word representing a number or fraction, converting it to its spoken form according to locale conventions.
+    
+    Handles locale-specific decimal and thousands separators, expands fractions, and uses available pronunciation engines to generate the spoken equivalent. If normalization fails, returns the original word.
     """
     cleaned_word = word.rstrip(string.punctuation)
 
@@ -435,16 +439,23 @@ def _normalize_number_word(word: str, full_lang: str, rbnf_engine) -> str:
 # --- Date and Time Pronunciation ---
 def pronounce_date(date_obj: date, full_lang: str) -> str:
     """
-    Pronounces a date object using ovos-date-parser.
+    Return the spoken form of a date object in the specified language.
+    
+    Parameters:
+        date_obj (date): The date to be pronounced.
+        full_lang (str): The language code for pronunciation.
+    
+    Returns:
+        str: The spoken representation of the date.
     """
     return nice_date(date_obj, full_lang)
 
 
 def pronounce_time(time_string: str, full_lang: str) -> str:
     """
-    Pronounces a time string using ovos-date-parser.
-    Handles military time like "15h01" and converts it to a
-    datetime.time object before passing it to nice_time.
+    Convert a time string in "HHhMM" format to its spoken form in the specified language.
+    
+    If parsing fails, returns the input string with "h" replaced by a space.
     """
     try:
         hours, mins = time_string.split("h")
@@ -458,8 +469,17 @@ def pronounce_time(time_string: str, full_lang: str) -> str:
 
 def _normalize_dates_and_times(text: str, full_lang: str, date_format: str = "DMY") -> str:
     """
-    Helper function to normalize dates and times using regular expressions.
-    This prepares the strings for pronunciation.
+    Normalizes dates and times in a text string, converting them to their spoken equivalents for the specified language.
+    
+    This function identifies and processes time expressions (e.g., "15h01") and date patterns (e.g., "DD/MM/YYYY", "YYYY/MM/DD") using regular expressions. It handles locale-specific formats, expands ambiguous years, and replaces recognized dates and times with their pronounced forms suitable for text-to-speech. For English, it also separates and expands "am"/"pm" time markers.
+    
+    Parameters:
+        text (str): The input text containing dates and times to normalize.
+        full_lang (str): The language code specifying the locale for normalization.
+        date_format (str, optional): The expected date format ("DMY" or "MDY"). Defaults to "DMY".
+    
+    Returns:
+        str: The text with dates and times replaced by their spoken equivalents.
     """
     lang_code = full_lang.split("-")[0]
     # Pre-process with regex to handle English am/pm times
@@ -472,6 +492,15 @@ def _normalize_dates_and_times(text: str, full_lang: str, date_format: str = "DM
     time_pattern = re.compile(r"(\d{1,2})h(\d{2})", re.IGNORECASE)
 
     def replace_time(match):
+        """
+        Replaces a matched time string with its spoken equivalent in the specified language.
+        
+        Parameters:
+        	match: A regex match object containing the time string to be pronounced.
+        
+        Returns:
+        	A string with the time expressed in spoken form for the target language.
+        """
         time_str = match.group(0)
         return pronounce_time(time_str, full_lang)
 
@@ -533,8 +562,9 @@ def _normalize_dates_and_times(text: str, full_lang: str, date_format: str = "DM
 
 def _normalize_word_hyphen_digit(text: str) -> str:
     """
-    Helper function to normalize words attached to digits with a hyphen,
-    such as 'sub-23' -> 'sub 23'.
+    Replaces occurrences of a word followed by a hyphen and digits with the word and number separated by a space.
+    
+    For example, transforms 'sub-23' into 'sub 23'.
     """
     # Regex to find a word (\w+) followed by a hyphen and a digit (\d+)
     pattern = re.compile(r"(\w+)-(\d+)")
@@ -544,9 +574,12 @@ def _normalize_word_hyphen_digit(text: str) -> str:
 
 def _normalize_units(text: str, full_lang: str) -> str:
     """
-    Helper function to normalize units attached to numbers.
-    This function handles symbolic and alphanumeric units separately
-    to avoid issues with word boundaries.
+    Expands and pronounces units attached to numbers in the text according to the specified language.
+    
+    This function detects numbers followed by unit symbols or abbreviations (e.g., "50kg", "100€"), converts the number to its spoken form, and replaces the unit with its full word equivalent based on language-specific mappings. Handles both symbolic (non-alphanumeric) and alphanumeric units, accounting for locale-specific decimal and thousands separators.
+    
+    Returns:
+        str: The text with numbers and units normalized to their spoken forms.
     """
     text = text.replace("º", "°")  # these characters look the same... but...
     lang_code = full_lang.split("-")[0]
@@ -567,6 +600,11 @@ def _normalize_units(text: str, full_lang: str) -> str:
             symbolic_pattern = re.compile(number_pattern_str + r"\s*(" + symbolic_pattern_str + r")", re.IGNORECASE)
 
             def replace_symbolic(match):
+                """
+                Replaces a matched symbolic unit expression with its spoken number and unit word equivalent.
+                
+                The function is intended for use as a regex replacement callback, converting patterns like "50%" or "1.5€" into their spoken forms (e.g., "fifty percent" or "one point five euros") according to the specified language. If pronunciation fails, returns the original matched string.
+                """
                 number = match.group(1)
                 # Remove thousands separator and replace decimal separator for parsing
                 if thousands_separator in number and decimal_separator in number:
@@ -592,6 +630,15 @@ def _normalize_units(text: str, full_lang: str) -> str:
                                               re.IGNORECASE)
 
             def replace_alphanumeric(match):
+                """
+                Replaces a matched alphanumeric unit expression with its spoken number and full unit name.
+                
+                Parameters:
+                	match: A regex match object containing a number and an alphanumeric unit symbol.
+                
+                Returns:
+                	A string with the number pronounced in the specified language followed by the expanded unit name.
+                """
                 number = match.group(1)
                 # Remove thousands separator and replace decimal separator for parsing
                 if thousands_separator in number and decimal_separator in number:
@@ -608,7 +655,9 @@ def _normalize_units(text: str, full_lang: str) -> str:
 
 def _normalize_word(word: str, full_lang: str, rbnf_engine) -> str:
     """
-    Helper function to normalize a single word.
+    Normalizes a single word by expanding contractions, titles, or pronouncing numbers and fractions.
+    
+    If the word matches a known contraction or title in the specified language, it is expanded to its full form. If the word represents a number or fraction, it is converted to its spoken equivalent. Returns the original word if no normalization applies.
     """
     lang_code = full_lang.split("-")[0]
 
@@ -627,7 +676,12 @@ def _normalize_word(word: str, full_lang: str, rbnf_engine) -> str:
 
 
 def is_fraction(word: str) -> bool:
-    """Checks if a word is a fraction like '3/3'."""
+    """
+    Determine if the input string represents a numeric fraction in the form 'n1/n2'.
+    
+    Returns:
+        bool: True if the string is a fraction with two integer components separated by '/', otherwise False.
+    """
     if "/" in word:
         parts = word.split("/")
         if len(parts) == 2:
@@ -638,8 +692,14 @@ def is_fraction(word: str) -> bool:
 
 def normalize(text: str, lang: str) -> str:
     """
-    Normalizes a text string by expanding contractions, titles, and pronouncing
-    numbers, units, and fractions.
+    Normalize a text string for spoken output by expanding contractions, titles, numbers, units, fractions, dates, and times according to the specified language.
+    
+    Parameters:
+        text (str): The input text to normalize.
+        lang (str): The language code (e.g., "en-US", "pt-PT") used for locale-specific normalization.
+    
+    Returns:
+        str: The normalized text with contractions expanded, numbers and units pronounced, and dates and times converted to spoken form.
     """
     full_lang = lang
     lang_code = full_lang.split("-")[0]
