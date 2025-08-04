@@ -353,8 +353,8 @@ def _normalize_units(text: str, full_lang: str) -> str:
                 elif decimal_separator != "." and decimal_separator in number:
                     number = number.replace(decimal_separator, ".")
                 unit_symbol = match.group(2)
-                unit_word = alphanumeric_units[unit_symbol]
                 try:
+                    unit_word = alphanumeric_units[unit_symbol]
                     return f"{pronounce_number(float(number) if '.' in number else int(number), full_lang)} {unit_word}"
                 except Exception as e:
                     LOG.error(f"Failed to pronounce number with unit: {number}{unit_symbol} - ({e})")
