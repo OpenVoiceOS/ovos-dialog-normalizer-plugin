@@ -1,5 +1,6 @@
 import datetime
-import logging
+import json
+import os
 import re
 import string
 from datetime import date
@@ -7,356 +8,59 @@ from datetime import date
 from ovos_date_parser import nice_time, nice_date
 from ovos_number_parser import pronounce_number, pronounce_fraction
 from ovos_number_parser.util import is_numeric
+from ovos_utils.log import LOG
 from unicode_rbnf import RbnfEngine, FormatPurpose
 
-LOG = logging.getLogger("normalize")
+RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "locale")
 
-# A dictionary of common contractions and their expanded forms.
-# This list is very comprehensive for English.
-CONTRACTIONS = {
-    "en": {
-        "I'd": "I would",
-        "I'll": "I will",
-        "I'm": "I am",
-        "I've": "I have",
-        "ain't": "is not",
-        "aren't": "are not",
-        "can't": "can not",
-        "could've": "could have",
-        "couldn't": "could not",
-        "didn't": "did not",
-        "doesn't": "does not",
-        "don't": "do not",
-        "gonna": "going to",
-        "gotta": "got to",
-        "hadn't": "had not",
-        "hasn't": "has not",
-        "haven't": "have not",
-        "he'd": "he would",
-        "he'll": "he will",
-        "he's": "he is",
-        "how'd": "how did",
-        "how'll": "how will",
-        "how's": "how is",
-        "isn't": "is not",
-        "it'd": "it would",
-        "it'll": "it will",
-        "it's": "it is",
-        "might've": "might have",
-        "mightn't": "might not",
-        "must've": "must have",
-        "mustn't": "must not",
-        "needn't": "need not",
-        "oughtn't": "ought not",
-        "shan't": "shall not",
-        "she'd": "she would",
-        "she'll": "she will",
-        "she's": "she is",
-        "should've": "should have",
-        "shouldn't": "should not",
-        "somebody's": "somebody is",
-        "someone'd": "someone would",
-        "someone'll": "someone will",
-        "someone's": "someone is",
-        "that'd": "that would",
-        "that'll": "that will",
-        "that's": "that is",
-        "there'd": "there would",
-        "there're": "there are",
-        "there's": "there is",
-        "they'd": "they would",
-        "they'll": "they will",
-        "they're": "they are",
-        "they've": "they have",
-        "wasn't": "was not",
-        "we'd": "we would",
-        "we'll": "we will",
-        "we're": "we are",
-        "we've": "we have",
-        "weren't": "were not",
-        "what'd": "what did",
-        "what'll": "what will",
-        "what're": "what are",
-        "what's": "what is",
-        "what've": "what have",
-        "whats": "what is",
-        "when'd": "when did",
-        "when's": "when is",
-        "where'd": "where did",
-        "where's": "where is",
-        "where've": "where have",
-        "who'd": "who would",
-        "who'd've": "who would have",
-        "who'll": "who will",
-        "who're": "who are",
-        "who's": "who is",
-        "who've": "who have",
-        "why'd": "why did",
-        "why're": "why are",
-        "why's": "why is",
-        "won't": "will not",
-        "won't've": "will not have",
-        "would've": "would have",
-        "wouldn't": "would not",
-        "wouldn't've": "would not have",
-        "y'ain't": "you are not",
-        "y'aint": "you are not",
-        "y'all": "you all",
-        "ya'll": "you all",
-        "you'd": "you would",
-        "you'd've": "you would have",
-        "you'll": "you will",
-        "you're": "you are",
-        "you've": "you have",
-        "I'm'a": "I am going to",
-        "I'm'o": "I am going to",
-        "I'll've": "I will have",
-        "I'd've": "I would have",
-        "Whatcha": "What are you",
-        "amn't": "am not",
-        "'cause": "because",
-        "can't've": "cannot have",
-        "couldn't've": "could not have",
-        "daren't": "dare not",
-        "daresn't": "dare not",
-        "dasn't": "dare not",
-        "everyone's": "everyone is",
-        "gimme": "give me",
-        "gon't": "go not",
-        "hadn't've": "had not have",
-        "he've": "he would have",
-        "he'll've": "he will have",
-        "he'd've": "he would have",
-        "here's": "here is",
-        "how're": "how are",
-        "how'd'y": "how do you do",
-        "howd'y": "how do you do",
-        "howdy": "how do you do",
-        "'tis": "it is",
-        "'twas": "it was",
-        "it'll've": "it will have",
-        "it'd've": "it would have",
-        "kinda": "kind of",
-        "let's": "let us",
-        "ma'am": "madam",
-        "may've": "may have",
-        "mayn't": "may not",
-        "mightn't've": "might not have",
-        "mustn't've": "must not have",
-        "needn't've": "need not have",
-        "ol'": "old",
-        "oughtn't've": "ought not have",
-        "sha'n't": "shall not",
-        "shan't": "shall not",
-        "shalln't": "shall not",
-        "shan't've": "shall not have",
-        "she'd've": "she would have",
-        "shouldn't've": "should not have",
-        "so've": "so have",
-        "so's": "so is",
-        "something's": "something is",
-        "that're": "that are",
-        "that'd've": "that would have",
-        "there'll": "there will",
-        "there'd've": "there would have",
-        "these're": "these are",
-        "they'll've": "they will have",
-        "they'd've": "they would have",
-        "this's": "this is",
-        "this'll": "this will",
-        "this'd": "this would",
-        "those're": "those are",
-        "to've": "to have",
-        "wanna": "want to",
-        "we'll've": "we will have",
-        "we'd've": "we would have",
-        "what'll've": "what will have",
-        "when've": "when have",
-        "where're": "where are",
-        "which's": "which is",
-        "who'll've": "who will have",
-        "why've": "why have",
-        "will've": "will have",
-        "y'all're": "you all are",
-        "y'all've": "you all have",
-        "y'all'd": "you all would",
-        "y'all'd've": "you all would have",
-        "you'll've": "you will have"
-    }
-}
 
-# Dictionaries for titles, units, and their full word equivalents.
-TITLES = {
-    "en": {
-        "Dr.": "Doctor",
-        "Mr.": "Mister",
-        "Prof.": "Professor"
-    },
-    "ca": {
-        "Dr.": "Doctor",
-        "Sr.": "Senyor",
-        "Sra.": "Senyora",
-        "Prof.": "Professor"
-    },
-    "es": {
-        "Dr.": "Doctor",
-        "Sr.": "Señor",
-        "Sra.": "Señora",
-        "Prof.": "Profesor",
-        "D.": "Don",
-        "Dña.": "Doña"
-    },
-    "pt": {
-        "Dr.": "Doutor",
-        "Sr.": "Senhor",
-        "Sra.": "Senhora",
-        "Prof.": "Professor",
-        "Drª.": "Doutora",
-        "Eng.": "Engenheiro",
-        "D.": "Dom",
-        "Dª": "Dona"
-    },
-    "gl": {
-        "Dr.": "Doutor",
-        "Sr.": "Señor",
-        "Sra.": "Señora",
-        "Prof.": "Profesor",
-        "Srta.": "Señorita"
-    },
-    "fr": {
-        "Dr.": "Docteur",
-        "M.": "Monsieur",
-        "Mme": "Madame",
-        "Mlle": "Mademoiselle",
-        "Prof.": "Professeur",
-        "Pr.": "Professeur"
-    },
-    "it": {
-        "Dr.": "Dottore",
-        "Sig.": "Signore",
-        "Sig.ra": "Signora",
-        "Prof.": "Professore",
-        "Dott.ssa": "Dottoressa",
-        "Sig.na": "Signorina"
-    },
-    "nl": {
-        "Dr.": "Dokter",
-        "Dhr.": "De Heer",
-        "Mevr.": "Mevrouw",
-        "Prof.": "Professor",
-        "Drs.": "Dokterandus",
-        "Ing.": "Ingenieur"
-    },
-    "de": {
-        "Dr.": "Doktor",
-        "Prof.": "Professor"
-    }
-}
+# --- Locale Data Management Class ---
+class LocaleDataManager:
+    """
+    A helper class to lazy-load and cache locale-specific data from JSON files.
+    The data is not hardcoded and will be loaded from a 'locale' directory
+    containing language-specific JSON files on first use.
+    """
 
-UNITS = {
-    "en": {
-        "€": "euros",
-        "%": "per cent",
-        "°C": "degrees celsius",
-        "°F": "degrees fahrenheit",
-        "°K": "degrees kelvin",
-        "°": "degrees",
-        "$": "dollars",
-        "£": "pounds",
-        "km": "kilometers",
-        "m": "meters",
-        "cm": "centimeters",
-        "mm": "millimeters",
-        "ft": "feet",
-        "in": "inches",
-        "yd": "yards",
-        "mi": "miles",
-        "kg": "kilograms",
-        "g": "grams",
-        "lb": "pounds",
-        "oz": "ounces",
-        "L": "liters",
-        "mL": "milliliters",
-        "gal": "gallons",
-        "qt": "quarts",
-        "pt": "pints",
-        "hr": "hours",
-        "min": "minutes",
-        "s": "seconds"
-    },
-    "pt": {
-        "€": "euros",
-        "%": "por cento",
-        "°C": "graus celsius",
-        "°F": "graus fahrenheit",
-        "°K": "graus kelvin",
-        "°": "graus",
-        "$": "dólares",
-        "£": "libras",
-        "km": "quilômetros",
-        "m": "metros",
-        "cm": "centímetros",
-        "mm": "milímetros",
-        "kg": "quilogramas",
-        "g": "gramas",
-        "L": "litros",
-        "mL": "mililitros",
-        "h": "horas",
-        "min": "minutos",
-        "s": "segundos"
-    },
-    "es": {
-        "€": "euros",
-        "%": "por ciento",
-        "°C": "grados celsius",
-        "°F": "grados fahrenheit",
-        "°K": "grados kelvin",
-        "°": "grados",
-        "$": "dólares",
-        "£": "libras",
-        "km": "kilómetros",
-        "m": "metros",
-        "cm": "centímetros",
-        "kg": "kilogramos",
-        "g": "gramos",
-        "L": "litros",
-        "mL": "millilitros"
-    },
-    "fr": {
-        "€": "euros",
-        "%": "pour cent",
-        "°C": "degrés celsius",
-        "°F": "degrés fahrenheit",
-        "°K": "degrés kelvin",
-        "°": "degrés",
-        "$": "dollars",
-        "£": "livres",
-        "km": "kilomètres",
-        "m": "mètres",
-        "cm": "centimètres",
-        "kg": "kilogrammes",
-        "g": "grammes",
-        "L": "litres",
-        "mL": "millilitres"
-    },
-    "de": {
-        "€": "Euro",
-        "%": "Prozent",
-        "°C": "Grad Celsius",
-        "°F": "Grad Fahrenheit",
-        "°K": "Grad Kelvin",
-        "°": "Grad",
-        "$": "Dollar",
-        "£": "Pfund",
-        "km": "Kilometer",
-        "m": "Meter",
-        "cm": "Zentimeter",
-        "kg": "Kilogramm",
-        "g": "Gramm",
-        "L": "Liter",
-        "mL": "Milliliter"
-    }
-}
+    def __init__(self):
+        """Initializes an empty cache for locale data."""
+        self.cache = {}
+
+    def _load_data(self, lang_code: str, file_name: str) -> dict:
+        """Loads a single JSON file and caches it."""
+        file_path = os.path.join(RESOURCES_DIR, lang_code, f"{file_name}.json")
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                self.cache.setdefault(lang_code, {})[file_name] = data
+                return data
+        except FileNotFoundError:
+            LOG.debug(f"Locale file not found: {file_path}. Using empty dictionary.")
+            self.cache.setdefault(lang_code, {})[file_name] = {}
+            return {}
+        except json.JSONDecodeError as e:
+            LOG.error(f"Error decoding JSON from {file_path}: {e}")
+            self.cache.setdefault(lang_code, {})[file_name] = {}
+            return {}
+
+    def get_data(self, lang_code: str, file_name: str) -> dict:
+        """Retrieves data for a given language and file, using the cache."""
+        if lang_code in self.cache and file_name in self.cache[lang_code]:
+            return self.cache[lang_code][file_name]
+        return self._load_data(lang_code, file_name)
+
+    def get_contractions(self, lang_code: str) -> dict:
+        return self.get_data(lang_code, "contractions")
+
+    def get_units(self, lang_code: str) -> dict:
+        return self.get_data(lang_code, "units")
+
+    def get_titles(self, lang_code: str) -> dict:
+        return self.get_data(lang_code, "titles")
+
+
+# Instantiate the manager to be used by the normalization functions
+locale_data_manager = LocaleDataManager()
 
 
 def _get_number_separators(full_lang: str) -> tuple[str, str]:
@@ -364,14 +68,15 @@ def _get_number_separators(full_lang: str) -> tuple[str, str]:
     Return the decimal and thousands separators appropriate for the specified language.
     
     Parameters:
-    	full_lang (str): The full language code (e.g., "en-US", "pt-BR").
+        full_lang (str): The full language code (e.g., "en-US", "pt-BR").
     
     Returns:
-    	tuple[str, str]: A tuple containing the decimal separator and thousands separator for the language.
+        tuple[str, str]: A tuple containing the decimal separator and thousands separator for the language.
     """
     lang_code = full_lang.split("-")[0]
     decimal_separator = '.'
     thousands_separator = ','
+    # TODO This logic can also be moved to a JSON file
     if lang_code in ["pt", "es", "fr", "de"]:
         decimal_separator = ','
         thousands_separator = '.'
@@ -583,13 +288,15 @@ def _normalize_units(text: str, full_lang: str) -> str:
     """
     text = text.replace("º", "°")  # these characters look the same... but...
     lang_code = full_lang.split("-")[0]
-    if lang_code in UNITS:
+    units_data = locale_data_manager.get_units(lang_code)
+
+    if units_data:
         # Determine number separators for the language
         decimal_separator, thousands_separator = _get_number_separators(full_lang)
 
         # Separate units into symbolic and alphanumeric
-        symbolic_units = {k: v for k, v in UNITS[lang_code].items() if not k.isalnum()}
-        alphanumeric_units = {k: v for k, v in UNITS[lang_code].items() if k.isalnum()}
+        symbolic_units = {k: v for k, v in units_data.items() if not k.isalnum()}
+        alphanumeric_units = {k: v for k, v in units_data.items() if k.isalnum()}
 
         # Create regex pattern for symbolic units and replace them first
         sorted_symbolic = sorted(symbolic_units.keys(), key=len, reverse=True)
@@ -660,12 +367,14 @@ def _normalize_word(word: str, full_lang: str, rbnf_engine) -> str:
     If the word matches a known contraction or title in the specified language, it is expanded to its full form. If the word represents a number or fraction, it is converted to its spoken equivalent. Returns the original word if no normalization applies.
     """
     lang_code = full_lang.split("-")[0]
+    contractions = locale_data_manager.get_contractions(lang_code)
+    titles = locale_data_manager.get_titles(lang_code)
 
-    if word in CONTRACTIONS.get(lang_code, {}):
-        return CONTRACTIONS[lang_code][word]
+    if word in contractions:
+        return contractions[word]
 
-    if word in TITLES.get(lang_code, {}):
-        return TITLES[lang_code][word]
+    if word in titles:
+        return titles[word]
 
     # Delegate number parsing to the new helper function
     normalized_number = _normalize_number_word(word, full_lang, rbnf_engine)

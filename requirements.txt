@@ -1,5 +1,5 @@
 ovos-plugin-manager
 langcodes
-ovos-number-parser>=0.4.0
-ovos-date-parser>=0.6.4a1
+ovos-number-parser>=0.4.0,<1.0.0
+ovos-date-parser>=0.6.4a1,<1.0.0
 unicode_rbnf

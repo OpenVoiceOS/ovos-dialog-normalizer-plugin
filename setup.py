@@ -48,6 +48,14 @@ def get_version():
 
 ENTRY_POINT = 'ovos-dialog-normalizer-plugin=ovos_dialog_normalizer_plugin:DialogNormalizerTransformer'
 
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+
 
 setup(
     name='ovos-dialog-normalizer-plugin',
@@ -58,6 +66,8 @@ setup(
     author_email='jarbasai@mailfence.com',
     license='MIT',
     packages=['ovos_dialog_normalizer_plugin'],
+    include_package_data=True,
+    package_data={'': package_files('ovos_dialog_normalizer_plugin')},
     zip_safe=True,
     keywords='ovos plugin utterance dialog TTS normalization',
     entry_points={
