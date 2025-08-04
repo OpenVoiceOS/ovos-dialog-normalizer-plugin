@@ -341,10 +341,10 @@ def _normalize_units(text: str, full_lang: str) -> str:
                 Replaces a matched alphanumeric unit expression with its spoken number and full unit name.
                 
                 Parameters:
-                	match: A regex match object containing a number and an alphanumeric unit symbol.
+                    match: A regex match object containing a number and an alphanumeric unit symbol.
                 
                 Returns:
-                	A string with the number pronounced in the specified language followed by the expanded unit name.
+                    A string with the number pronounced in the specified language followed by the expanded unit name.
                 """
                 number = match.group(1)
                 # Remove thousands separator and replace decimal separator for parsing
@@ -354,8 +354,11 @@ def _normalize_units(text: str, full_lang: str) -> str:
                     number = number.replace(decimal_separator, ".")
                 unit_symbol = match.group(2)
                 unit_word = alphanumeric_units[unit_symbol]
-                return f"{pronounce_number(float(number) if '.' in number else int(number), full_lang)} {unit_word}"
-
+                try:
+                    return f"{pronounce_number(float(number) if '.' in number else int(number), full_lang)} {unit_word}"
+                except Exception as e:
+                    LOG.error(f"Failed to pronounce number with unit: {number}{unit_symbol} - ({e})")
+                    return match.group(0)
             text = alphanumeric_pattern.sub(replace_alphanumeric, text)
     return text
 
