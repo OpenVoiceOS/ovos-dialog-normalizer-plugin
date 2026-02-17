@@ -1,0 +1,1 @@
+"""Test package for ovos_dialog_normalizer_plugin."""

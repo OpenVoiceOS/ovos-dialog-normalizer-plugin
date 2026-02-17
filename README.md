@@ -1,6 +1,6 @@
 # OVOS Dialog Normalizer
 
-a dialog transformer plugins for OVOS
+a dialog transformer plugins for OpenVoiceOS
 
 ## Description
 
@@ -29,7 +29,9 @@ All you need to do is add a entry in your `mycroft.conf` under `"dialog_transfor
 
 Pull Requests welcome! 
 
-Adding new expansions should be straightforward, to improve number handling please refer to [ovos-number-parser](https://github.com/OpenVoiceOS/ovos-number-parser)
+- to support new languages translate the `.json` files in the `locale` folder
+- to improve number handling please refer to [ovos-number-parser](https://github.com/OpenVoiceOS/ovos-number-parser)
+- to improve date/time handling please refer to [ovos-date-parser](https://github.com/OpenVoiceOS/ovos-date-parser)
 
 ## Credits
 

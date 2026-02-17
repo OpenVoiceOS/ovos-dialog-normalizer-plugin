@@ -1,0 +1,21 @@
+{
+  "€": "euros",
+  "%": "por cento",
+  "°C": "graus celsius",
+  "°F": "graus fahrenheit",
+  "°K": "graus kelvin",
+  "°": "graus",
+  "$": "dólares",
+  "£": "libras",
+  "km": "quilômetros",
+  "m": "metros",
+  "cm": "centímetros",
+  "mm": "milímetros",
+  "kg": "quilogramas",
+  "g": "gramas",
+  "L": "litros",
+  "mL": "mililitros",
+  "h": "horas",
+  "min": "minutos",
+  "s": "segundos"
+}
