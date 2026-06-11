@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2a4](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.2a4) (2026-06-11)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a3...0.0.2a4)
+
+**Merged pull requests:**
+
+- docs: add TigreGotico attribution, link ILENIA [\#14](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/pull/14) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.2a3](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.2a3) (2025-12-19)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a2...0.0.2a3)
