@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2a5](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.2a5) (2026-06-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a4...0.0.2a5)
+
+**Merged pull requests:**
+
+- chore: add missing shared CI workflows [\#15](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/pull/15) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.2a4](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.2a4) (2026-06-11)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a3...0.0.2a4)
