@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a1](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.3a1) (2026-06-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a5...0.0.3a1)
+
+**Merged pull requests:**
+
+- fix: require ovos-plugin-manager\>=2.1.0 for opm.\* entry points and cap ovos-\* deps at next major [\#17](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/pull/17) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.2a5](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.2a5) (2026-06-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a4...0.0.2a5)
