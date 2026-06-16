@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ovos-dialog-normalizer-plugin"
+dynamic = ["version"]
+description = "A question solver plugin for ovos"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "jarbasai", email = "jarbasai@mailfence.com"}
+]
+keywords = ["ovos", "plugin", "utterance", "dialog", "TTS", "normalization"]
+dependencies = [
+    "ovos-plugin-manager",
+    "ovos-number-parser>=0.3.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin"
+
+[project.entry-points."opm.transformer.dialog"]
+"ovos-dialog-normalizer-plugin" = "ovos_dialog_normalizer_plugin:DialogNormalizerTransformer"
+
+[tool.setuptools.dynamic]
+version = {attr = "ovos_dialog_normalizer_plugin.version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ovos_dialog_normalizer_plugin*"]
