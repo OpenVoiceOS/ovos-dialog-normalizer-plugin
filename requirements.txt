@@ -1,2 +1,0 @@
-ovos-plugin-manager
-ovos-number-parser>=0.3.0
