@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a2](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.3a2) (2026-07-31)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.3a1...0.0.3a2)
+
+**Merged pull requests:**
+
+- docs: rewrite README in Simplified Technical English [\#19](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/pull/19) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.3a1](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.3a1) (2026-06-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.2a5...0.0.3a1)
