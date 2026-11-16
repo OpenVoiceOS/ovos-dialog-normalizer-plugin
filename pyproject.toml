@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["ovos", "plugin", "utterance", "dialog", "TTS", "normalization"]
 dependencies = [
-    "ovos-plugin-manager>=2.1.0,<3.0.0",
+    "ovos-plugin-manager>=2.10.0a1",
     "ovos-bus-client>=1.0.0",
     "ovos-utils>=0.2.1",
     "ovos-number-parser>=0.4.0,<1.0.0",

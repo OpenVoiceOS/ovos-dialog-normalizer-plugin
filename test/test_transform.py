@@ -83,6 +83,10 @@ UNSERVED_DEV_OUTPUT = [
     ("fr-FR", "M. Dupont a 3 enfants.", "Monsieur Dupont a trois enfants."),
     ("fr-FR", "Cela coûte 25 € par jour.", "Cela coûte vingt-cinq euros par jour."),
     ("fr-FR", "Mme Martin a 40 ans.", "Madame Martin a quarante ans."),
+    # The region reaches ovos-number-parser: Belgian and Swiss French say septante and nonante.
+    ("fr-BE", "Il a 70 ans.", "Il a septante ans."),
+    ("fr-CH", "Il a 90 ans.", "Il a nonante ans."),
+    ("fr-FR", "Il a 70 ans.", "Il a soixante-dix ans."),
 ]
 
 
@@ -140,15 +144,29 @@ def test_english_contractions_expand_before_text2spoken(plugin):
     assert expected == "I am sure it is five kilometers and we can not walk twelve kilometers."
 
 
-def test_text2spoken_failure_leaves_dialog_unchanged(plugin):
-    text = "O Dr. Silva pagou 2,50 € às 14:30."
+def test_text2spoken_receives_expanded_contractions(plugin):
+    with mock.patch("text2spoken.normalize", wraps=text2spoken.normalize) as normalize:
+        transform(plugin, "I'm sure it's 5 km.", "en-US")
+    normalize.assert_called_once_with("I am sure it is 5 km.", "en-US")
+
+
+def test_contractions_match_between_any_white_space(plugin):
+    text = "I'm\tsure\nit's 5 km."
+    expected = text2spoken.normalize("I am\tsure\nit is 5 km.", "en-US")
+    assert transform(plugin, text, "en-US") == expected
+    assert expected == "I am\tsure\nit is five kilometers."
+
+
+@pytest.mark.parametrize("lang,text", [("pt-PT", "O Dr. Silva pagou 2,50 € às 14:30."),
+                                       ("en-US", "I'm sure it's 5 km.")])
+def test_text2spoken_failure_leaves_dialog_unchanged(plugin, lang, text):
     with mock.patch("text2spoken.normalize", side_effect=RuntimeError("broken reader")), \
             mock.patch("ovos_dialog_normalizer_plugin.LOG") as log:
-        out = transform(plugin, text, "pt-PT")
+        out = transform(plugin, text, lang)
     assert out == text
     log.warning.assert_called_once()
     message = log.warning.call_args.args[0]
-    assert "broken reader" in message and "pt-PT" in message
+    assert "broken reader" in message and lang in message
 
 
 def test_no_session_in_context_uses_default_session(plugin):
