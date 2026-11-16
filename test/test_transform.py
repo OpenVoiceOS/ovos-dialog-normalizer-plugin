@@ -1,4 +1,4 @@
-"""The plugin reads written forms through text2spoken and keeps the legacy path for other languages."""
+"""The plugin reads the written forms of every language through text2spoken."""
 import re
 from unittest import mock
 
@@ -164,3 +164,26 @@ def test_no_session_in_context_uses_default_session(plugin):
     out, context = plugin.transform("I walked 5 km.")
     assert context == {}
     assert out == text2spoken.normalize("I walked 5 km.", lang)
+
+
+def test_no_session_in_context_uses_default_session_language(plugin):
+    text = "Tenho 16 anos."
+    with mock.patch.object(SessionManager, "get", return_value=Session("default", lang="pt-PT")):
+        out, context = plugin.transform(text)
+    assert context == {}
+    assert out == text2spoken.normalize(text, "pt-PT")
+    assert out == "Tenho dezasseis anos."
+
+
+@pytest.mark.parametrize("lang,text", [("en-US", " "), ("en-US", "\n"), ("gl-ES", "  \t ")])
+def test_white_space_only_dialog_stays_unchanged(plugin, lang, text):
+    assert transform(plugin, text, lang) == text
+
+
+@pytest.mark.parametrize("lang,text,expected", [
+    ("en-US", "  I walked 5 km.  ", "  I walked five kilometers.  "),
+    ("pt-PT", "\tTenho 16 anos.\n", "\tTenho dezasseis anos.\n"),
+])
+def test_leading_and_trailing_white_space_is_kept(plugin, lang, text, expected):
+    assert text2spoken.normalize(text, lang) == expected
+    assert transform(plugin, text, lang) == expected
