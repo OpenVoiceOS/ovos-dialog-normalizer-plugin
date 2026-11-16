@@ -17,9 +17,7 @@ dependencies = [
     "ovos-plugin-manager>=2.10.0a1",
     "ovos-bus-client>=1.0.0",
     "ovos-utils>=0.2.1",
-    "ovos-number-parser>=0.4.0,<1.0.0",
-    "text2spoken[ar,es,eu,pt,ru]>=0.0.2a53",
-    "unicode-rbnf>=2.4.1"
+    "text2spoken[ar,es,eu,pt,ru]>=0.0.2a53"
 ]
 
 [project.optional-dependencies]
@@ -39,6 +37,3 @@ version = {attr = "ovos_dialog_normalizer_plugin.version.__version__"}
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["ovos_dialog_normalizer_plugin*"]
-
-[tool.setuptools.package-data]
-ovos_dialog_normalizer_plugin = ["locale/*/*.json"]

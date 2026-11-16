@@ -5,7 +5,6 @@ from unittest import mock
 import pytest
 import text2spoken
 from ovos_bus_client.session import Session, SessionManager
-
 from ovos_dialog_normalizer_plugin import DialogNormalizerTransformer
 
 # Each sentence holds a number, a date or a time, money or a unit.
@@ -64,29 +63,26 @@ GOLD = [
     ("de-DE", "Es ist 14:30 Uhr.", "Es ist vierzehn Uhr dreißig."),
 ]
 
-# The output of dev a0c561d. text2spoken has no language file for these languages.
-# When it gains one, the language moves to SERVED.
-UNSERVED_DEV_OUTPUT = [
-    ("gl-ES", "Fai 25 ºC en Vigo.", "Fai vinte e cinco graos centígrados en Vigo."),
-    ("gl-ES", "O Dr. Pérez ten 3 fillos.", "O Doutor Pérez ten tres fillos."),
-    ("gl-ES", "Custa 15€ e chega ás 14:30.", "Custa quince euros e chega ás 14:30."),
-    ("gl-ES", "A Sra. López ten 42 anos.", "A Señora López ten corenta e dous anos."),
-    ("it-IT", "Il Dott.ssa Rossi ha 3 gatti.", "Il Dottoressa Rossi ha tre gatti."),
-    ("it-IT", "Costa 20 € al giorno.", "Costa venti euros al giorno."),
-    ("it-IT", "Il Sig. Bianchi ha 45 anni.", "Il Signore Bianchi ha quarantacinque anni."),
-    ("nl-NL", "Dhr. Jansen heeft 2 katten.", "De Heer Jansen heeft twee katten."),
-    ("nl-NL", "Het kost 15 € per dag.", "Het kost vijftien euros per dag."),
-    ("nl-NL", "Mevr. de Vries is 60 jaar.", "Mevrouw de Vries is zestig jaar."),
-    ("ca-ES", "El Sr. Puig té 3 fills.", "El Senyor Puig té tres fills."),
-    ("ca-ES", "Costa 12 € per persona.", "Costa dotze euros per persona."),
-    ("ca-ES", "La Sra. Vila té 50 anys.", "La Senyora Vila té cinquanta anys."),
-    ("fr-FR", "M. Dupont a 3 enfants.", "Monsieur Dupont a trois enfants."),
-    ("fr-FR", "Cela coûte 25 € par jour.", "Cela coûte vingt-cinq euros par jour."),
-    ("fr-FR", "Mme Martin a 40 ans.", "Madame Martin a quarante ans."),
-    # The region reaches ovos-number-parser: Belgian and Swiss French say septante and nonante.
+# Languages with no text2spoken language file. text2spoken reads their cardinal numbers through
+# CLDR RBNF where RBNF has the locale, and leaves every other written form as written.
+OTHER_LANGUAGES = [
+    ("gl-ES", "Fai 25 ºC en Vigo."),
+    ("gl-ES", "O Dr. Pérez ten 3 fillos."),
+    ("it-IT", "Il Sig. Bianchi ha 45 anni."),
+    ("it-IT", "Costa 20 € al giorno."),
+    ("nl-NL", "Mevr. de Vries is 60 jaar."),
+    ("nl-NL", "Het kost 15 € per dag."),
+    ("ca-ES", "La Sra. Vila té 50 anys."),
+    ("fr-FR", "Mme Martin a 40 ans."),
+    ("fr-BE", "Il a 70 ans."),
+]
+
+# CLDR RBNF spellout-cardinal of fr, fr_BE and fr_CH: 70 is soixante-dix in France and septante in
+# Belgium and Switzerland; 90 is nonante in both.
+CLDR_CARDINALS = [
+    ("fr-FR", "Il a 70 ans.", "Il a soixante-dix ans."),
     ("fr-BE", "Il a 70 ans.", "Il a septante ans."),
     ("fr-CH", "Il a 90 ans.", "Il a nonante ans."),
-    ("fr-FR", "Il a 70 ans.", "Il a soixante-dix ans."),
 ]
 
 
@@ -122,8 +118,13 @@ def test_hand_checked_readings(plugin, lang, text, expected):
     assert transform(plugin, text, lang) == expected
 
 
-@pytest.mark.parametrize("lang,text,expected", UNSERVED_DEV_OUTPUT)
-def test_unserved_language_keeps_dev_output(plugin, lang, text, expected):
+@pytest.mark.parametrize("lang,text", OTHER_LANGUAGES)
+def test_language_without_file_reads_what_text2spoken_reads(plugin, lang, text):
+    assert transform(plugin, text, lang) == text2spoken.normalize(text, lang)
+
+
+@pytest.mark.parametrize("lang,text,expected", CLDR_CARDINALS)
+def test_language_without_file_reads_cardinals(plugin, lang, text, expected):
     assert transform(plugin, text, lang) == expected
 
 
@@ -137,24 +138,13 @@ def test_full_session_tag_reaches_text2spoken(plugin):
     assert gb == "We met on the twelfth of March twenty twenty-four."
 
 
-def test_english_contractions_expand_before_text2spoken(plugin):
+def test_contractions_stay_as_written(plugin):
     text = "I'm sure it's 5 km and we can't walk 12 km."
-    expected = text2spoken.normalize("I am sure it is 5 km and we can not walk 12 km.", "en-US")
-    assert transform(plugin, text, "en-US") == expected
-    assert expected == "I am sure it is five kilometers and we can not walk twelve kilometers."
-
-
-def test_text2spoken_receives_expanded_contractions(plugin):
     with mock.patch("text2spoken.normalize", wraps=text2spoken.normalize) as normalize:
-        transform(plugin, "I'm sure it's 5 km.", "en-US")
-    normalize.assert_called_once_with("I am sure it is 5 km.", "en-US")
-
-
-def test_contractions_match_between_any_white_space(plugin):
-    text = "I'm\tsure\nit's 5 km."
-    expected = text2spoken.normalize("I am\tsure\nit is 5 km.", "en-US")
-    assert transform(plugin, text, "en-US") == expected
-    assert expected == "I am\tsure\nit is five kilometers."
+        out = transform(plugin, text, "en-US")
+    normalize.assert_called_once_with(text, "en-US")
+    assert out == text2spoken.normalize(text, "en-US")
+    assert out == "I'm sure it's five kilometers and we can't walk twelve kilometers."
 
 
 @pytest.mark.parametrize("lang,text", [("pt-PT", "O Dr. Silva pagou 2,50 € às 14:30."),
