@@ -63,8 +63,7 @@ GOLD = [
     ("de-DE", "Es ist 14:30 Uhr.", "Es ist vierzehn Uhr dreißig."),
 ]
 
-# Languages with no text2spoken language file. text2spoken reads their cardinal numbers through
-# CLDR RBNF where RBNF has the locale, and leaves every other written form as written.
+# Languages outside SERVED. For these rows the plugin output must equal the text2spoken output.
 OTHER_LANGUAGES = [
     ("gl-ES", "Fai 25 ºC en Vigo."),
     ("gl-ES", "O Dr. Pérez ten 3 fillos."),
