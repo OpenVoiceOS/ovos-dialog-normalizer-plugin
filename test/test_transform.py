@@ -78,8 +78,9 @@ OTHER_LANGUAGES = [
 ]
 
 # CLDR RBNF spellout-cardinal of fr, fr_BE and fr_CH: 70 is soixante-dix in France and septante in
-# Belgium and Switzerland; 90 is nonante in both.
+# Belgium and Switzerland; 90 is nonante in both. Galician 3 is tres.
 CLDR_CARDINALS = [
+    ("gl-ES", "Teño 3 gatos.", "Teño tres gatos."),
     ("fr-FR", "Il a 70 ans.", "Il a soixante-dix ans."),
     ("fr-BE", "Il a 70 ans.", "Il a septante ans."),
     ("fr-CH", "Il a 90 ans.", "Il a nonante ans."),

@@ -25,9 +25,9 @@ If text2spoken fails on a dialog, the plugin logs a warning and sends the dialog
 
 ## Languages
 
-text2spoken 0.0.2a53 has language files for Arabic, Basque, English, German, Portuguese, Russian and Spanish. In these languages it reads all the written forms above.
+In a language with a text2spoken language file, text2spoken reads all the written forms above. The [text2spoken coverage page](https://github.com/TigreGotico/text2spoken/blob/dev/docs/coverage.md) lists the languages that have a language file.
 
-In a language with no text2spoken language file, text2spoken reads only cardinal numbers, through the CLDR number rules. Other written forms stay as written. Galician has no CLDR number rules, so text2spoken reads no Galician written form. To add a language, contribute a language file to text2spoken.
+In a language with no text2spoken language file, text2spoken reads only cardinal numbers, through the CLDR number rules. Other written forms stay as written. For example, in `gl-ES` text2spoken reads `Teño 3 gatos.` as `Teño tres gatos.`, but `Son as 14:30.` stays as written. To add a language, contribute a language file to text2spoken.
 
 ## Install
 
