@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0a1](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.1.0a1) (2026-11-27)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.3a2...0.1.0a1)
+
+**Merged pull requests:**
+
+- feat: read written forms through text2spoken [\#2](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/pull/2) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.3a2](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/tree/0.0.3a2) (2026-07-31)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-dialog-normalizer-plugin/compare/0.0.3a1...0.0.3a2)
